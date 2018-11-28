@@ -17,6 +17,7 @@ var websocket = new WebSocketService()
 Vue.set(appState, "WebSocket", websocket.ariNode)
 
 Vue.use(VueRx)
+
 Vue.use(ElementUI)
 Vue.config.productionTip = false
 

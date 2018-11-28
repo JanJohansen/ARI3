@@ -1,6 +1,4 @@
-import { Graph, AriNodeBase } from "../GraphEngine"
-import { BehaviorSubject } from "rxjs"
-import { filter } from "rxjs/operators"
+import { AriGraph, AriNodeBase, IAriNodeBase } from "../GraphEngine"
 
 export class Ticker extends AriNodeBase {
     //---------------
@@ -14,25 +12,21 @@ export class Ticker extends AriNodeBase {
 
     //---------------
     // Members
-    timeout: NodeJS.Timeout
+    __timeout: NodeJS.Timeout
+    count: number = 0
 
-    public constructor(parent: Graph, config: any = {}) {
-        super(parent);
+    public constructor(parent: IAriNodeBase, name: string, config: any = {}) {
+        super(parent, "Ticker", name, config);
+        console.log("Creating Ticker...")
 
         // Define IO's
-        this.addInput("interval", 1000, {description: "Specifies the interval at which count is sent to 'outs.ticks'"})
-        this.addOutput("ticks", 0, {description: "Sends out an increasing counter value with 'ins.interval' millisecons between increments."})
-        this.addOutput("test", 0, {description: "Test output for development...'"})
-
-        // Do stuffs
-        let count = 1
-        this.ins!.interval.observable.forEach(interval => {
-            if (this.timeout) clearInterval(this.timeout)
-            this.timeout = setInterval(() => {
-                this.outs!.ticks.observable.next(count++)
-            }, interval)
-        }).catch(err=>{console.log("ERROR:", err)})
-        this.outs!.ticks.observable.pipe(filter(x => x % 10 == 0)).forEach(x => this.outs!.test.observable.next(x))
+        this.addInput("interval", "intervalType", (value, input) => {
+            if (this.__timeout) clearInterval(this.__timeout)
+            this.__timeout = setInterval(() => {
+                this.outs!.ticks._set(this.count++)
+            }, value)
+        })
+        this.addOutput("ticks", "number", 0)
 
         // Apply config (set current state, ets.)
         this.applyConfig(config)

@@ -1,5 +1,5 @@
 import { TreeHugger } from "./TreeHugger";
-describe("Dummy tests:", () => {
+describe("TreeHugger tests:", () => {
     beforeAll(() => { });
 
     var th = new TreeHugger({ devices: { HueGW: { Lamps: { Lamp1: { brightness: "42" } } } } })

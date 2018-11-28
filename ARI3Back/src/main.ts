@@ -10,23 +10,21 @@ import { WsServer } from "./WsServer"
 appRoot.wsServer = new WsServer()
 
 //----------------------------------
-// import { Observable, Subject, ReplaySubject, from, of, range } from 'rxjs';
-// import { map, filter, switchMap } from 'rxjs/operators';
-// import { Graph } from "./AriGraphEngine/GraphEngine"
+import { AriGraph } from "./AriGraphEngine/GraphEngine"
 
-// Graph.loadTypes(`${__dirname}/AriGraphEngine/AriNodes/**/*.js`)
+AriGraph.loadTypes(`${__dirname}/AriGraphEngine/AriNodes/**/*.js`)
 
-// var graph = new Graph();
-// let t = graph.addNode("Ticker", { ins: { interval: 1000 } })
-// let c = graph.addNode("Console", { ins: { log: "Starting app..." } })
-// graph.connect({ source: "Ticker.outs.ticks", destination: "Console.ins.log" })
+var graph = new AriGraph(null, "root")
+let t = graph.addNode("Ticker", "ticker", { ins: { interval: 1000 } })
+let c = graph.addNode("Console", "console", { ins: { log: "Starting app..." } })
+graph.connect({ output: "ticker.outs.ticks", input: "console.ins.log" })
 
-// t.outs.ticks.observable.forEach(x => {
-//   console.log("ticks:", x)
-// })
-// t.outs.test.observable.forEach(x => {
-//   console.log("x:", x)
-// })
+graph.addNode("Ticker", "ticker2", { ins: { interval: 443 } })
+graph.addNode("Console", "console2", { ins: { log: "Starting app..." } })
+graph.connect({ output: "ticker2.outs.ticks", input: "console2.ins.log" })
 
-
-
+log.debug("Graph:", JSON.stringify(graph, (key: string, value: any) => { 
+    //console.log("Key:", key)
+    if(key.startsWith("__")) return undefined
+    else return value 
+}, 2))

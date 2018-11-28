@@ -16,7 +16,7 @@ export class Logger {
         // Set up default console listener...
         this.mainLogr.subscribe(newLogger => {
             newLogger.subscribe((evt: ILogEvent) => {
-                console.log(`${new Date(evt.ts!).toISOString()}\t${evt.lvl}\t${evt.src!.name}\t ${JSON.stringify(evt.msg)}`)
+                console.log(`${new Date(evt.ts!).toISOString()}\t${evt.lvl}\t${evt.src!.name}\t`, ...evt.msg)
             })
         })
     }

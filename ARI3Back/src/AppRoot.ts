@@ -1,7 +1,4 @@
-import { Observable, Subject } from "rxjs"
-import { mergeAll } from "rxjs/operators"
-import {Logger} from "./logService"
-
+import {Logger} from "./common/logService"
 
 class AppRoot {
   // Singleton instance handling
@@ -18,6 +15,9 @@ class AppRoot {
   constructor() {
     this.logger = new Logger()
   }
+
+  // TS: Allow any members to be added.
+  [name: string]: any
 }
 
 export const appRoot = AppRoot.getInstance()
