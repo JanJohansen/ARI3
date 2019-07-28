@@ -9,11 +9,16 @@
     "install:back": "cd ARI3Back && npm install",
     "start": "run-p start:front start:back",
     "start:front": "npm run serve --prefix ARI3Front",
-    "start:back": "npm run start --prefix ARI3Back"
+    "start:back": "npm run start --prefix ARI3Back",
+    "compile:back": "npm run compile --prefix ARI3Back",
+    "test": "run-p test:back test:front",
+    "test:front": "",
+    "test:back": "jest --prefix ARI3Back"
   },
   "author": "Jan Johansen",
   "license": "MIT",
   "devDependencies": {
     "npm-run-all": "^4.1.5"
-  }
+  },
+  "dependencies": {}
 }

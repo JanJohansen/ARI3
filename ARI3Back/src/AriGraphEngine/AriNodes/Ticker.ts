@@ -1,21 +1,21 @@
-import { AriGraph, AriNodeBase, IAriNodeBase } from "../GraphEngine"
+import { AriGraphNode, AriNodeBase } from "../GraphEngine"
 
-export class Ticker extends AriNodeBase {
+export class Ticker extends AriGraphNode {
     //---------------
     // static information about the node
-    static AriNodeInfo = {
-        typeName: "Ticker",
-        author: "Jan Johansen",
-        infoUrl: "",
-        description: "Sends out counter values at a configurable interval."
-    }
+    // static AriNodeInfo = {
+    //     typeName: "Ticker",
+    //     author: "Jan Johansen",
+    //     infoUrl: "",
+    //     description: "Sends out counter values at a configurable interval."
+    // }
 
     //---------------
     // Members
     __timeout: NodeJS.Timeout
     count: number = 0
 
-    public constructor(parent: IAriNodeBase, name: string, config: any = {}) {
+    public constructor(parent: AriNodeBase, name: string, config: any = {}) {
         super(parent, "Ticker", name, config);
         console.log("Creating Ticker...")
 

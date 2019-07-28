@@ -1,4 +1,5 @@
 import { Observable, Subject } from "rxjs"
+// import { AriNodeBase } from "src/AriGraphEngine/GraphEngine";
 //import { merge } from "rxjs/operators";
 
 interface ILogEvent {
@@ -16,7 +17,7 @@ export class Logger {
         // Set up default console listener...
         this.mainLogr.subscribe(newLogger => {
             newLogger.subscribe((evt: ILogEvent) => {
-                console.log(`${new Date(evt.ts!).toISOString()}\t${evt.lvl}\t${evt.src!.name}\t`, ...evt.msg)
+                console.log(`\x1b[90m${new Date(evt.ts!).toISOString()}\t${evt.lvl}\t${evt.src!.name}\n\x1b[39m`, ...evt.msg)
             })
         })
     }

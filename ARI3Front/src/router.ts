@@ -2,6 +2,8 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './views/Home.vue'
 import Develop from './views/Develop.vue'
+import DebugView from './views/Debug.vue'
+import Flow from './views/Flow.vue'
 
 Vue.use(Router)
 
@@ -11,7 +13,7 @@ export default new Router({
     {
       path: '/',
       name: 'default',
-      component: Develop
+      component: DebugView
     },
     {
       path: '/develop',
@@ -22,6 +24,11 @@ export default new Router({
       path: '/home',
       name: 'home',
       component: Home
+    },
+    {
+      path: '/flow',
+      name: 'flow',
+      component: Flow
     },
     {
       path: '/about',

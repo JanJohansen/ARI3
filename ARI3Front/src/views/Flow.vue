@@ -1,25 +1,27 @@
 <template>
 	<el-container>
 		<MainMenu />
+		<el-header height="20px">Path: root.tests.test1</el-header>
 		<el-container>
-			<el-aside width="100px">Aside</el-aside>
+			<el-aside width="100px">Flow Aside</el-aside>
 			<el-container>
 				<el-main style="padding: 0"> 
-					<NodeTree /> 
+					<Flow /> 
 				</el-main>
 			</el-container>
 		</el-container>
 		<el-footer height="">Footer</el-footer>
 	</el-container>
-</template>
+</template> 
 
 <script>
 import MainMenu from "../components/MainMenu"
-import NodeTree from "../components/NodeTree"
+import Flow from "../components/flow/Flow"
+
 export default {
 	name: "Page",
 	components: {
-		NodeTree,
+		Flow,
 		MainMenu
 	},
 	data() {

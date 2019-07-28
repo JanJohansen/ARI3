@@ -1,4 +1,5 @@
-import {Logger} from "./common/logService"
+import { Logger } from "./common/logService"
+import { AriNodeBase } from "./common/AriNodeBase"
 
 class AppRoot {
   // Singleton instance handling
@@ -10,10 +11,13 @@ class AppRoot {
 
   // Variable declarations
   logger: Logger
-
+  ariRoot: AriNodeBase
+  
   // Methods
   constructor() {
     this.logger = new Logger()
+    this.ariRoot = new AriNodeBase(null, "Ari")
+    this.ariRoot.addChild(new AriNodeBase(null, "graphRoot"))
   }
 
   // TS: Allow any members to be added.

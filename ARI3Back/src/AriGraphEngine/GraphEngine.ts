@@ -1,4 +1,4 @@
-import { AriNodeBase, IAriNodeBase, IAriNodeInput, IAriNodeOutput } from "../common/AriNodeBase"
-import { AriGraph } from "./GraphNode"
+import { AriNodeBase, AriNodeInput, AriNodeOutput } from "../common/AriNodeBase"
+import { AriGraphNode } from "./GraphNode"
 
-export { AriGraph, AriNodeBase, IAriNodeBase, IAriNodeInput, IAriNodeOutput }
+export { AriGraphNode, AriNodeBase, AriNodeInput, AriNodeOutput }

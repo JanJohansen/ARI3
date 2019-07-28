@@ -1,31 +1,23 @@
 <template>
-	<div class="custom-tree-container">
-		<div class="block">
-			<el-tree
-				:data="data5"
-				:props="defaultProps"
-				node-key="name"
-				default-expand-all
-				highlight-current
-			>
-				<span class="custom-tree-node" slot-scope="{ node, data }">
-					<span>{{ node.label }}</span>
-					<span>
-						<el-button type="text" size="mini" @click="() => append(data)">
-							Append {{ node.label }}
-						</el-button>
-						<el-button
-							type="text"
-							size="mini"
-							@click="() => remove(node, data)"
-						>
-							Delete {{ node.label }}
-						</el-button>
-					</span>
-				</span>
-			</el-tree>
-		</div>
-	</div>
+  <div class="custom-tree-container">
+    <div class="block">
+      <el-tree
+        :data="data5"
+        :props="defaultProps"
+        node-key="name"
+        default-expand-all
+        highlight-current
+      >
+        <span class="custom-tree-node" slot-scope="{ node, data }">
+          <span>{{ node.label }}</span>
+          <span>
+            <el-button size="mini" @click="() => append(data)">+</el-button>
+            <el-button size="mini" @click="() => remove(node, data)">-</el-button>
+          </span>
+        </span>
+      </el-tree>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -102,6 +94,10 @@ export default {
     }
   },
   created() {
+    console.log("Getting roots!");
+    let roots = this.$ari.getRoots().then(roots => {
+      console.log("ROOTS:", roots);
+    });
   }
 };
 </script>
@@ -114,6 +110,5 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding-right: 8px;
-  //border-bottom: 1px dashed blue;
 }
 </style>

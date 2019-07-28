@@ -5,7 +5,7 @@
 			<el-aside width="100px">Aside</el-aside>
 			<el-container>
 				<el-main style="padding: 0"> 
-					<NodeTree /> 
+					<log-box /> 
 				</el-main>
 			</el-container>
 		</el-container>
@@ -15,20 +15,23 @@
 
 <script>
 import MainMenu from "../components/MainMenu"
-import NodeTree from "../components/NodeTree"
+import LogBox from "../components/LogBox"
 export default {
-	name: "Page",
+	name: "DebugView",
 	components: {
-		NodeTree,
-		MainMenu
+		MainMenu,
+		LogBox
 	},
 	data() {
 		return {
-			msg: "EY!"
 		}
 	},
 	methods: {},
 	created() {
+		this.$notify({
+			title: "EY!",
+			message: "Debug view started!"
+		})
 	}
 }
 </script>

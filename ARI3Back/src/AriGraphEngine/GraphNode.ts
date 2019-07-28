@@ -1,18 +1,20 @@
 const glob = require("glob")
 const path = require("path")
-import { AriNodeBase, IAriNodeBase, IAriNodeInput, IAriNodeOutput } from "../common/AriNodeBase"
+import { AriNodeBase, AriNodeInput, AriNodeOutput } from "../common/AriNodeBase"
 
-export class AriGraph extends AriNodeBase {
+export class AriGraphNode extends AriNodeBase {
     static AriNodeInfo: {
         description: "Node representing a root-graph or a sub-grap within another graph."
     }
 
-    static types: { [typeName: string]: new (parent: IAriNodeBase, name: string, config: any) => AriNodeBase } = { "AriGraph": AriGraph }
+    static types: { [typeName: string]: new (parent: AriNodeBase, type: string, name: string, config: any) => AriNodeBase } = { "AriGraphNode": AriGraphNode }
+    type: string
     children: { [name: string]: AriNodeBase } = {}
-    connecions: {input: IAriNodeInput, ouput: IAriNodeOutput}[]
+    connecions: {input: AriNodeInput, ouput: AriNodeOutput}[]
 
-    constructor(parent: IAriNodeBase | null, name: string) {
-        super(parent, "AriGraph", name)
+    constructor(parent: AriNodeBase | null, type: string, name: string, config: any) {
+        super(parent, name)
+        this.type = type
     }
 
     static loadTypes(folderGlob: string) {
@@ -23,7 +25,7 @@ export class AriGraph extends AriNodeBase {
             for (let x in module) {
                 if (module[x].AriNodeInfo) {
                     console.log(`Adding: ${x}`)
-                    AriGraph.registerType(module[x].AriNodeInfo.typeName, module[x])
+                    AriGraphNode.registerType(module[x].AriNodeInfo.typeName, module[x])
                 } else {
                     console.log(`Skipping: ${x} - AriNodeType name not found in class.`)
                 }
@@ -31,15 +33,15 @@ export class AriGraph extends AriNodeBase {
         });
     }
 
-    static registerType(typeName: string, factory: new (parent: AriGraph, config: any) => AriNodeBase) {
+    static registerType(typeName: string, factory: new (parent: AriGraphNode, config: any) => AriNodeBase) {
         if (typeName in this.types) throw (`Error: Duplicate typeNames being registered! - (${typeName})`)
-        AriGraph.types[typeName] = factory
+        AriGraphNode.types[typeName] = factory
     }
 
     addNode(typeName: string, name: string, config: any = {}): AriNodeBase {
-        if (!(AriGraph.types[typeName])) throw (`Error: Trying to add unknown AriNode type - ${typeName}`)
+        if (!(AriGraphNode.types[typeName])) throw (`Error: Trying to add unknown AriNode type - ${typeName}`)
         name = this.createUniqueName(config.name || name || typeName)
-        let node = new AriGraph.types[typeName](this, name, config)
+        let node = new AriGraphNode.types[typeName](this, typeName, name, config)
         this.children[node.name] = node
         return node
     }
@@ -65,8 +67,8 @@ export class AriGraph extends AriNodeBase {
         let destNode = this.findNode(destPath)
         if (!destNode) return { Err: `Error when trying to add connection in "${this.name}". Input node for input "${args.input}" not found.` }
 
-        var input: IAriNodeInput | null = null
-        var output: IAriNodeOutput | null = null
+        var input: AriNodeInput | null = null
+        var output: AriNodeOutput | null = null
         if (srcIO! in srcNode.ins!) {
             input = srcNode.ins![srcIO!]
         } else if (srcIO! in srcNode.outs!) {
@@ -79,9 +81,9 @@ export class AriGraph extends AriNodeBase {
         }
         if (input && output) {
             // TODO: Store connection configuration
-            output.subscribe((value, output)=>{
-                input!.set(value)
-            })
+            // output.subscribe((value, output)=>{
+            //     input!.set(value)
+            // })
         } else return null;
     }
 }

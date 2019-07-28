@@ -18,6 +18,9 @@
       <router-link to="/develop">
         <el-menu-item index="2">Develop</el-menu-item>
       </router-link>
+      <router-link to="/flow">
+        <el-menu-item index="3">Flow</el-menu-item>
+      </router-link>
     </el-submenu>
     <el-submenu index="0" :showTimeout="0">
       <template slot="title">File</template>
@@ -32,20 +35,14 @@
     </el-submenu>
     <div class="onlineClass" @click="handleClick">
       <el-badge
-        class="item"
-        :value="online.v ? 'Connected: ' +  tmpCount : 'Disconnected' +  tmpCount"
-        :type="online.v ? 'success' : 'danger'"
+        :value="online ? 'Connected (' + ping + 'ms)' : 'Disconnected!'"
+        :type="online ? 'success' : 'danger'"
       ></el-badge>
     </div>
   </el-menu>
 </template>
 
 <script>
-// import { appState } from "../services/AppState";
-import { Observable, Subject, interval } from "rxjs"
-import { map, filter } from "rxjs/operators"
-
-
 export default {
   name: "MainMenu",
   methods: {
@@ -54,15 +51,24 @@ export default {
       this.online.v ^= true;
     }
   },
-  subscriptions: {
-		tmpCount: interval(1000)
-  },
   data: function() {
     return {
-      online: this.$root.appState.WebSocket.outs.connected
+      online: false,
+      ping: -1
     };
   },
-  mounted: () => {}
+  mounted: async function() {
+    this.$ari.on(".connection.connected", v => {
+      this.online = v;
+    });
+    this.$ari.on(".connection.ping", v => {
+      this.ping = v;
+    });
+    this.$ari.on(".connection.ready", async () => {
+      let result = await this.$ari.call("testCall", 42);
+      console.log("Result:", result);
+    });
+  }
 };
 </script>
 

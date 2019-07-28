@@ -3,30 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "start": "vue-cli-service serve --mode development",
+    "serve": "vue-cli-service serve --mode development",
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
-    "element-ui": "^2.4.11",
-    "register-service-worker": "^1.0.0",
-    "rxjs": "^6.3.3",
-    "vue": "^2.5.17",
-    "vue-router": "^3.0.1",
-    "vue-rx": "^6.0.1",
-    "vuex": "^3.0.1"
+    "element-ui": "^2.9.1",
+    "eventemitter2": "^5.0.1",
+    "register-service-worker": "^1.6.2",
+    "vue": "^2.6.10",
+    "vue-router": "^3.0.6"
   },
   "devDependencies": {
-    "@types/jest": "^23.1.4",
-    "@vue/cli-plugin-pwa": "^3.1.0",
-    "@vue/cli-plugin-typescript": "^3.1.0",
-    "@vue/cli-plugin-unit-jest": "^3.1.0",
-    "@vue/cli-service": "^3.1.0",
-    "@vue/test-utils": "^1.0.0-beta.20",
-    "less": "^3.0.4",
-    "less-loader": "^4.1.0",
-    "ts-jest": "^23.0.0",
-    "typescript": "^3.0.0",
-    "vue-template-compiler": "^2.5.17"
+    "@types/jest": "^24.0.13",
+    "@vue/cli-plugin-pwa": "^3.8.0",
+    "@vue/cli-plugin-typescript": "^3.8.1",
+    "@vue/cli-plugin-unit-jest": "^3.8.0",
+    "@vue/cli-service": "^3.8.0",
+    "@vue/test-utils": "^1.0.0-beta.29",
+    "less": "^3.9.0",
+    "less-loader": "^5.0.0",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.5.1",
+    "vue-template-compiler": "^2.6.10"
   }
 }
