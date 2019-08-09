@@ -177,7 +177,7 @@ class AriMemmoryEngine implements IAriEngine {
         let subj = obj.subjects[subject]
 
         // Store subscription locally
-        subj.subscribingClients.add(client.id)
+        subj.subscribingClients.add(client.id) 
 
         // If subject known: Send subscription to remote (This will make the object on the client send latest value. The value will then be sent to this subscriber.)
         if (obj.parent) {
@@ -188,15 +188,15 @@ class AriMemmoryEngine implements IAriEngine {
     off(client: IAriClient, objectId: string, subject: string): void {
         console.log("Engine: off")
     }
-    set(client: IAriClient, objectId: string, subject: string, value: any): Promise<boolean> {
+    set(client: IAriClient, objectId: string, subject: string, value: any): void {
         console.log("Engine: set")
         // TODO: ...
-        return Promise.resolve(true) 
     }
-    upd(client: IAriClient, objectId: string, subject: string, value: any): Promise<boolean> {
+    upd(client: IAriClient, objectId: string, subject: string, value: any): void {
         console.log("Engine: upd")
         // TODO: ...
-        return Promise.resolve(true)
+
+        this.objects[objectId].subjects[subject].subscribingClients.forEach((cid)=>this.clients[cid].__remoteUpd(objectId, subject, value))
     }
     connectClient(client: IAriClient): void {
         console.log(`Engine - client (${client.id}) connected.`)
@@ -593,7 +593,7 @@ class LogObject extends AriObject {
         super(client)
         console.log("Creating Logger")
         this.on("in_debug", (val, subject) => {
-            console.log(val)
+            console.log(`Logger (${this._id}): ${val}`)
         })
     }
 }
