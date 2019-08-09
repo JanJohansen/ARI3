@@ -2,6 +2,12 @@
 // NOTE TO SELF!: Source is in ARI3Front!
 
 /*
+
+
+
+
+
+## SCHEMA for managing reactive model tree!
 let model = {
 	node: {
 		val: 42,
@@ -15,6 +21,7 @@ let model = {
 		}
 	}
 }
+
 						sub(".") 		sub(".*")			sub(".**")
 HueGW					{Lamp:{}}		{Lamp: {}}			{Lamp: {brightness: 1}}
 	Lamp				{brightness: 1}	{brightness: 1}		{brightness: 1}
@@ -24,13 +31,13 @@ HueGW					{Lamp:{}}		{Lamp: {}}			{Lamp: {brightness: 1}}
 const subsSym = Symbol("subsSym")
 const storePathSym = Symbol("storePathSym")
 
-export class AriNode {
+export class AriObject {
 	static nextSubId = 0
 	// [name: string]: AriObjectModel | Function // TypeScript: May contain any names for child relations!
-	log(...args: any): void { console.log(...args) }
+	private __log(...args: any): void { /*console.log(...args)*/ }
 
 	pub(path: string | string[], value: any, storePath = true, storeValue = true) {
-		this.log('! Setting:', path, '=', value)
+		this.__log('! Setting:', path, '=', value)
 		let found = this.findNode(path, storePath)
 		if (found) {
 			let node = found.node
@@ -48,8 +55,13 @@ export class AriNode {
 			node.callStarSubsribers();
 		}
 	}
+	getSubscriberCount(propName: string){
+		let count = 0
+		for(let p in this[subsSym][propName]) count++
+		return count
+	}
 	private callStarSubsribers() {
-		this.log("callStarSubs")
+		this.__log("callStarSubs")
 		let subs = this[subsSym];
 		if (subs) {
 			// Check for * subscription
@@ -81,6 +93,9 @@ export class AriNode {
 			let name = found.name
 			// Call cb if value available!
 			if (name in node) {
+				// TODO: if object return props as empty objs
+				
+				// else return val.
 				cb(node[name], subscriptionContext)
 			}
 
@@ -89,12 +104,12 @@ export class AriNode {
 			let subs = node[subsSym]
 			if (!(name in subs)) subs[name] = {}
 			let elementSubs = subs[name]
-			elementSubs[AriNode.nextSubId] = { cb, context: subscriptionContext }
-			return AriNode.nextSubId++
+			elementSubs[AriObject.nextSubId] = { cb, context: subscriptionContext }
+			return AriObject.nextSubId++
 		} else return null
 	}
-	findNode(path: string | string[], storePath = true): { node: AriNode, name: string } | null {
-		this.log('! Finding', path)
+	findNode(path: string | string[], storePath = true): { node: AriObject, name: string } | null {
+		this.__log('! Finding', path)
 		path = typeof path == 'string' ? path.split('.') : path.slice()
 
 		let node = this
@@ -106,7 +121,7 @@ export class AriNode {
 				return { node, name }
 			} else {
 				if (!(name in node)) {
-					node[name] = new AriNode() // Create path if not existing.
+					node[name] = new AriObject() // Create path if not existing.
 					node.callStarSubsribers()
 					if (!storePath) node[name][storePathSym] = false
 				}
@@ -115,10 +130,6 @@ export class AriNode {
 			name = path[pathIdx++]
 		}
 		return null
-	}
-	dumpModel() {
-		// console.log(JSON.stringify(this, null, 2))
-		console.log(this)
 	}
 	unsub(subId: number) {
 		// Hmmm...Iterate or make index?
@@ -132,298 +143,298 @@ export class AriNode {
 	}
 }
 
-export class AriModel_old {
-	static const valueSym = Symbol("valueSym")
-	static const subsSym = Symbol("valueSym")
-	model: any = {}
-	static nextSubId = 0
-	log(...args: any): void { console.log(...args) }
-	constructor(name: string) {
+// export class AriModel_old {
+// 	static const valueSym = Symbol("valueSym")
+// 	static const subsSym = Symbol("valueSym")
+// 	model: any = {}
+// 	static nextSubId = 0
+// 	log(...args: any): void { console.log(...args) }
+// 	constructor(name: string) {
 
-	}
-	//-------------------------------------------------------------------------
-	// Public API
-	/**
-	 * Set "topic" to a value.
-	 */
-	pub(path: string | string[], value: any, storePath = true, storeValue = true) {
-		this.log('! Setting:', path, '=', value)
-		path = typeof path == 'string' ? path.split('.') : path.slice()
+// 	}
+// 	//-------------------------------------------------------------------------
+// 	// Public API
+// 	/**
+// 	 * Set "topic" to a value.
+// 	 */
+// 	pub(path: string | string[], value: any, storePath = true, storeValue = true) {
+// 		this.log('! Setting:', path, '=', value)
+// 		path = typeof path == 'string' ? path.split('.') : path.slice()
 
-		let node = this.model
-		let pathId = 0
-		let name = path[pathId++]
-		while (name !== undefined) {
-			if (!node[name]) {
-				if (storePath) node[name] = {} // Create path if not existing.
-				else return
-			}
-			if (pathId == path.length) {
-				// Target path found. Store value *on object*!
-				if (!storeValue) node[name][AriNode.valueSym] = value
+// 		let node = this.model
+// 		let pathId = 0
+// 		let name = path[pathId++]
+// 		while (name !== undefined) {
+// 			if (!node[name]) {
+// 				if (storePath) node[name] = {} // Create path if not existing.
+// 				else return
+// 			}
+// 			if (pathId == path.length) {
+// 				// Target path found. Store value *on object*!
+// 				if (!storeValue) node[name][AriNode.valueSym] = value
 
-				// Call subscribers
-				if (node[name][subsSym]) {
+// 				// Call subscribers
+// 				if (node[name][subsSym]) {
 
-				}
-			} else {
-				// Move along path
-				node = node[name]
-			}
-			name = path[pathId++]
-		}
-	}
-	/**
-	 * Subscribe to model changes.
-	 * Returns symbol identifying subscription, or null if subscription failed (e.g. storePath=false and path not found!)
-	 */
-	sub(path: string | string[], cb: (value: any, subscriptionContext: any) => void, subscriptionContext: any = undefined, storePath = true): number | null {
-		this.log(`! Subscribing to: ${path}`)
-		path = typeof path == 'string' ? path.split('.') : path.slice()
+// 				}
+// 			} else {
+// 				// Move along path
+// 				node = node[name]
+// 			}
+// 			name = path[pathId++]
+// 		}
+// 	}
+// 	/**
+// 	 * Subscribe to model changes.
+// 	 * Returns symbol identifying subscription, or null if subscription failed (e.g. storePath=false and path not found!)
+// 	 */
+// 	sub(path: string | string[], cb: (value: any, subscriptionContext: any) => void, subscriptionContext: any = undefined, storePath = true): number | null {
+// 		this.log(`! Subscribing to: ${path}`)
+// 		path = typeof path == 'string' ? path.split('.') : path.slice()
 
-		let node = this.model
-		let pathId = 0
-		let name = path[pathId++]
-		while (name !== undefined) {
-			if (!(name in node)) {
-				if (storePath) node[name] = {} // Create path if not existing.
-				else return null
-			}
-			if (pathId == path.length) {
-				// Target path found.
-				if (name in node) {
+// 		let node = this.model
+// 		let pathId = 0
+// 		let name = path[pathId++]
+// 		while (name !== undefined) {
+// 			if (!(name in node)) {
+// 				if (storePath) node[name] = {} // Create path if not existing.
+// 				else return null
+// 			}
+// 			if (pathId == path.length) {
+// 				// Target path found.
+// 				if (name in node) {
 
-				}
+// 				}
 
-				// Call subscribers
+// 				// Call subscribers
 
-				return this.nextSubId++
-			} else {
-				// Move along path
-				node = node[name]
-			}
-			name = path[pathId++]
-		}
-	}
-	/**
-	 * UnSubscribe to previous subscription.
-	 */
-	unsub(subscriptionId: number) {
+// 				return this.nextSubId++
+// 			} else {
+// 				// Move along path
+// 				node = node[name]
+// 			}
+// 			name = path[pathId++]
+// 		}
+// 	}
+// 	/**
+// 	 * UnSubscribe to previous subscription.
+// 	 */
+// 	unsub(subscriptionId: number) {
 
-	}
-	/**
-	 * Delete tree branch from and including end of specified path!
-	 * @param path 
-	 */
-	delete(path: string | string[]) {
+// 	}
+// 	/**
+// 	 * Delete tree branch from and including end of specified path!
+// 	 * @param path 
+// 	 */
+// 	delete(path: string | string[]) {
 
-	}
-	/**
-	 * Call function
-	 * @param path 
-	 * @param args 
-	 */
-	async call(path: string[], args: any = null): Promise<any> {
-		return null
-	}
-	/**
-	 * Define and register callback for function call
-	 */
-	onCall() {
+// 	}
+// 	/**
+// 	 * Call function
+// 	 * @param path 
+// 	 * @param args 
+// 	 */
+// 	async call(path: string[], args: any = null): Promise<any> {
+// 		return null
+// 	}
+// 	/**
+// 	 * Define and register callback for function call
+// 	 */
+// 	onCall() {
 
-	}
-	//-------------------------------------------------------------------------
-	// Helpers
-	/**
-	 * Apply Patch Tree to Value Tree
-	 */
-	private setValue(path: string[], value: any) {
-		let node = this.model
-		let pathId = 0
-		let name = path[pathId++]
-		while (name !== undefined) {
-			if (!node[name]) {
-				node[name] = {} // Create path if not existing.
-			}
-			if (pathId == path.length) {
-				// Create or overwrite value
-				node[name] = value
-				return true
-			} else {
-				// Move along path
-				node = node[name]
-			}
-			name = path[pathId++]
-		}
-	}
-	getValueTree(path: string[], resultNode: any, values: any[], pathId: number = 0, vTree: any = this.model) {
-		//TODO: Support **
-		let pName = path[pathId]
-		for (let vProp in vTree) {
-			if (!vProp.startsWith('__')) {
-				if (pName == vProp) {
-					pathId++
-					if (pathId < path.length) {
-						let subResult = {}
-						if (this.getValueTree(path, subResult, values, pathId, vTree[vProp])) {
-							resultNode[vProp] = subResult
-							return true
-						} else return false
-					} else {
-						resultNode[vProp] = vTree[vProp]
-						values.push(vTree[vProp])
-						return true
-					}
+// 	}
+// 	//-------------------------------------------------------------------------
+// 	// Helpers
+// 	/**
+// 	 * Apply Patch Tree to Value Tree
+// 	 */
+// 	private setValue(path: string[], value: any) {
+// 		let node = this.model
+// 		let pathId = 0
+// 		let name = path[pathId++]
+// 		while (name !== undefined) {
+// 			if (!node[name]) {
+// 				node[name] = {} // Create path if not existing.
+// 			}
+// 			if (pathId == path.length) {
+// 				// Create or overwrite value
+// 				node[name] = value
+// 				return true
+// 			} else {
+// 				// Move along path
+// 				node = node[name]
+// 			}
+// 			name = path[pathId++]
+// 		}
+// 	}
+// 	getValueTree(path: string[], resultNode: any, values: any[], pathId: number = 0, vTree: any = this.model) {
+// 		//TODO: Support **
+// 		let pName = path[pathId]
+// 		for (let vProp in vTree) {
+// 			if (!vProp.startsWith('__')) {
+// 				if (pName == vProp) {
+// 					pathId++
+// 					if (pathId < path.length) {
+// 						let subResult = {}
+// 						if (this.getValueTree(path, subResult, values, pathId, vTree[vProp])) {
+// 							resultNode[vProp] = subResult
+// 							return true
+// 						} else return false
+// 					} else {
+// 						resultNode[vProp] = vTree[vProp]
+// 						values.push(vTree[vProp])
+// 						return true
+// 					}
 
 
-					if (path[pathId] == "**") {
-						if (path[pathId + 1]) {
-							if (path[pathId + 1] in vTree[vProp]) pathId++
-						}
-					} else pathId++
-				}
-			}
-		}
-		return false
-	}
-	addToSubTree(path: string | string[], subId: number) {
-		path = typeof path == 'string' ? path.split('.') : path.slice()
+// 					if (path[pathId] == "**") {
+// 						if (path[pathId + 1]) {
+// 							if (path[pathId + 1] in vTree[vProp]) pathId++
+// 						}
+// 					} else pathId++
+// 				}
+// 			}
+// 		}
+// 		return false
+// 	}
+// 	addToSubTree(path: string | string[], subId: number) {
+// 		path = typeof path == 'string' ? path.split('.') : path.slice()
 
-		var tree = this.sTree
-		var name = path.shift()
+// 		var tree = this.sTree
+// 		var name = path.shift()
 
-		while (name !== undefined) {
-			if (!tree[name]) tree[name] = {}
-			tree = tree[name]
+// 		while (name !== undefined) {
+// 			if (!tree[name]) tree[name] = {}
+// 			tree = tree[name]
 
-			if (path.length == 0) {
-				if (!tree._subIds) tree._subIds = []
-				tree._subIds.push(subId)
-				return true
-			}
-			name = path.shift()
-		}
-	}
-	/** Get list of subscribers in sTree matching mPath (Match Path). 
-	* @Credit Modified from the brilliant EventEmitter2.
-	*/
-	getSubList(tPath: string[], subList: any, pathId: number = 0, sTree: any = this.sTree): number[] {
-		this.log(`getSubList ${tPath} ${subList} ${pathId} ${JSON.stringify(sTree)}`)
-		let pathLength = tPath.length
+// 			if (path.length == 0) {
+// 				if (!tree._subIds) tree._subIds = []
+// 				tree._subIds.push(subId)
+// 				return true
+// 			}
+// 			name = path.shift()
+// 		}
+// 	}
+// 	/** Get list of subscribers in sTree matching mPath (Match Path). 
+// 	* @Credit Modified from the brilliant EventEmitter2.
+// 	*/
+// 	getSubList(tPath: string[], subList: any, pathId: number = 0, sTree: any = this.sTree): number[] {
+// 		this.log(`getSubList ${tPath} ${subList} ${pathId} ${JSON.stringify(sTree)}`)
+// 		let pathLength = tPath.length
 
-		// If at the end of the event(s) list and the tree has subscriptions
-		// return those listeners!
-		if (pathId == pathLength) {
-			if (sTree._subIds) sTree._subIds.forEach((subId: number) => subList.push(subId))
-			return [sTree] // Return array of subId arrays to allow deleting them!
-		}
-		let tProp = tPath[pathId]
-		let nextTProp = tPath[pathId + 1]
-		let branch
-		let subIds: number[] = []
-		let endReached
-		if (tProp === "*" || tProp === "**" || sTree[tProp]) {
-			{
-				//
-				// If the event emitted is '*' at this part
-				// or there is a concrete match at this patch
-				//
-				// if (tProp === "*") {
-				// 	for (branch in sTree) {
-				// 		if (branch !== "_subIds" && this.sTree.hasOwnProperty(branch)) {
-				// 			subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathId + 1, sTree[branch]))
-				// 		}
-				// 	}
-				// 	return subIds
-				// } else if (tProp === "**") {
-				// 	endReached = pathId + 1 === pathLength || (pathId + 2 === pathLength && nextTProp === "*")
-				// 	if (endReached && sTree._listeners) {
-				// 		// The next element has a _listeners, add it to the handlers.
-				// 		subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathLength, sTree))
-				// 			// this.getSubList(handlers, tPath, sTree, pathLength))
-				// 	}
+// 		// If at the end of the event(s) list and the tree has subscriptions
+// 		// return those listeners!
+// 		if (pathId == pathLength) {
+// 			if (sTree._subIds) sTree._subIds.forEach((subId: number) => subList.push(subId))
+// 			return [sTree] // Return array of subId arrays to allow deleting them!
+// 		}
+// 		let tProp = tPath[pathId]
+// 		let nextTProp = tPath[pathId + 1]
+// 		let branch
+// 		let subIds: number[] = []
+// 		let endReached
+// 		if (tProp === "*" || tProp === "**" || sTree[tProp]) {
+// 			{
+// 				//
+// 				// If the event emitted is '*' at this part
+// 				// or there is a concrete match at this patch
+// 				//
+// 				// if (tProp === "*") {
+// 				// 	for (branch in sTree) {
+// 				// 		if (branch !== "_subIds" && this.sTree.hasOwnProperty(branch)) {
+// 				// 			subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathId + 1, sTree[branch]))
+// 				// 		}
+// 				// 	}
+// 				// 	return subIds
+// 				// } else if (tProp === "**") {
+// 				// 	endReached = pathId + 1 === pathLength || (pathId + 2 === pathLength && nextTProp === "*")
+// 				// 	if (endReached && sTree._listeners) {
+// 				// 		// The next element has a _listeners, add it to the handlers.
+// 				// 		subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathLength, sTree))
+// 				// 			// this.getSubList(handlers, tPath, sTree, pathLength))
+// 				// 	}
 
-				// 	for (branch in sTree) {
-				// 		if (branch !== "_subId" && sTree.hasOwnProperty(branch)) {
-				// 			if (branch === "*" || branch === "**") {
-				// 				if (sTree[branch]._listeners && !endReached) {
-				// 					subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathLength, sTree[branch]))
-				// 						// this.getSubList(handlers, tPath, sTree[branch], pathLength))
-				// 				}
-				// 				subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathId, sTree[branch]))
-				// 					// this.getSubList(handlers, tPath, sTree[branch], pathId))
-				// 			} else if (branch === nextTProp) {
-				// 				subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathId + 2, sTree[branch]))
-				// 					// this.getSubList(handlers, tPath, sTree[branch], pathId + 2))
-				// 			} else {
-				// 				// No match on this one, shift into the tree but not in the type array.
-				// 				subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathId, sTree[branch]))
-				// 					// this.getSubList(handlers, tPath, sTree[branch], pathId))
-				// 			}
-				// 		}
-				// 	}
-				// 	return subIds
-				// }
-			}
-			let resultBranch = {}
-			subIds = subIds.concat(this.getSubList(tPath, subList, pathId + 1, sTree[tProp]))
-			// this.getSubList(handlers, tPath, sTree[tProp], pathId + 1))
-		}
+// 				// 	for (branch in sTree) {
+// 				// 		if (branch !== "_subId" && sTree.hasOwnProperty(branch)) {
+// 				// 			if (branch === "*" || branch === "**") {
+// 				// 				if (sTree[branch]._listeners && !endReached) {
+// 				// 					subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathLength, sTree[branch]))
+// 				// 						// this.getSubList(handlers, tPath, sTree[branch], pathLength))
+// 				// 				}
+// 				// 				subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathId, sTree[branch]))
+// 				// 					// this.getSubList(handlers, tPath, sTree[branch], pathId))
+// 				// 			} else if (branch === nextTProp) {
+// 				// 				subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathId + 2, sTree[branch]))
+// 				// 					// this.getSubList(handlers, tPath, sTree[branch], pathId + 2))
+// 				// 			} else {
+// 				// 				// No match on this one, shift into the tree but not in the type array.
+// 				// 				subIds = subIds.concat(this.getSubList(tPath, subList, resultTree, pathId, sTree[branch]))
+// 				// 					// this.getSubList(handlers, tPath, sTree[branch], pathId))
+// 				// 			}
+// 				// 		}
+// 				// 	}
+// 				// 	return subIds
+// 				// }
+// 			}
+// 			let resultBranch = {}
+// 			subIds = subIds.concat(this.getSubList(tPath, subList, pathId + 1, sTree[tProp]))
+// 			// this.getSubList(handlers, tPath, sTree[tProp], pathId + 1))
+// 		}
 
-		let xTree = sTree["*"]
-		if (xTree) {
-			// If the listener tree will allow any match for this part,
-			// then recursively explore all branches of the tree
-			// this.searchListenerTree(handlers, tPath, xTree, pathId + 1)
-			this.getSubList(tPath, subList, pathId + 1, xTree)
-		}
+// 		let xTree = sTree["*"]
+// 		if (xTree) {
+// 			// If the listener tree will allow any match for this part,
+// 			// then recursively explore all branches of the tree
+// 			// this.searchListenerTree(handlers, tPath, xTree, pathId + 1)
+// 			this.getSubList(tPath, subList, pathId + 1, xTree)
+// 		}
 
-		let xxTree = sTree["**"]
-		if (xxTree) {
-			if (pathId < pathLength) {
-				if (xxTree._subIds) {
-					// If we have a listener on a '**', it will catch all, so add its handler.
-					// this.searchListenerTree(handlers, tPath, xxTree, pathLength)
-					this.getSubList(tPath, subList, pathLength, xxTree)
-				}
-				// Build arrays of matching next branches and others.
-				for (branch in xxTree) {
-					if (branch !== "_subIds" && xxTree.hasOwnProperty(branch)) {
-						if (branch === nextTProp) {
-							// We know the next element will match, so jump twice.
-							// this.searchListenerTree(handlers, tPath, xxTree[branch], pathId + 2)
-							this.getSubList(tPath, subList, pathId + 2, xxTree[branch])
-						} else if (branch === tProp) {
-							// Current node matches, move into the tree.
-							// this.searchListenerTree(handlers, tPath, xxTree[branch], pathId + 1)
-							this.getSubList(tPath, subList, pathId + 1, xxTree[branch])
-						} else {
-							let isolatedBranch: any = {}
-							isolatedBranch[branch] = xxTree[branch]
-							// this.searchListenerTree(handlers, tPath, { "**": isolatedBranch }, pathId + 1)
-							this.getSubList(tPath, subList, pathId + 1, { "**": isolatedBranch })
-						}
-					}
-				}
-			} else if (xxTree._subIds) {
-				// We have reached the end and still on a '**'
-				// this.searchListenerTree(handlers, tPath, xxTree, pathLength)
-				this.getSubList(tPath, subList, pathLength, xxTree)
-			} else if (xxTree["*"] && xxTree["*"]._subIds) {
-				// this.searchListenerTree(handlers, tPath, xxTree["*"], pathLength)
-				this.getSubList(tPath, subList, pathLength, xxTree["*"])
-			}
-		}
-		return subIds
-	}
-	match(pattern: string, target: string) {
-		// this.log('Match:', pattern, '~~', target)
-		if (pattern.startsWith('*')) return true
-		if (target.startsWith('*')) return true
-		if (pattern == target) return true
-		return false
-	}
-}
+// 		let xxTree = sTree["**"]
+// 		if (xxTree) {
+// 			if (pathId < pathLength) {
+// 				if (xxTree._subIds) {
+// 					// If we have a listener on a '**', it will catch all, so add its handler.
+// 					// this.searchListenerTree(handlers, tPath, xxTree, pathLength)
+// 					this.getSubList(tPath, subList, pathLength, xxTree)
+// 				}
+// 				// Build arrays of matching next branches and others.
+// 				for (branch in xxTree) {
+// 					if (branch !== "_subIds" && xxTree.hasOwnProperty(branch)) {
+// 						if (branch === nextTProp) {
+// 							// We know the next element will match, so jump twice.
+// 							// this.searchListenerTree(handlers, tPath, xxTree[branch], pathId + 2)
+// 							this.getSubList(tPath, subList, pathId + 2, xxTree[branch])
+// 						} else if (branch === tProp) {
+// 							// Current node matches, move into the tree.
+// 							// this.searchListenerTree(handlers, tPath, xxTree[branch], pathId + 1)
+// 							this.getSubList(tPath, subList, pathId + 1, xxTree[branch])
+// 						} else {
+// 							let isolatedBranch: any = {}
+// 							isolatedBranch[branch] = xxTree[branch]
+// 							// this.searchListenerTree(handlers, tPath, { "**": isolatedBranch }, pathId + 1)
+// 							this.getSubList(tPath, subList, pathId + 1, { "**": isolatedBranch })
+// 						}
+// 					}
+// 				}
+// 			} else if (xxTree._subIds) {
+// 				// We have reached the end and still on a '**'
+// 				// this.searchListenerTree(handlers, tPath, xxTree, pathLength)
+// 				this.getSubList(tPath, subList, pathLength, xxTree)
+// 			} else if (xxTree["*"] && xxTree["*"]._subIds) {
+// 				// this.searchListenerTree(handlers, tPath, xxTree["*"], pathLength)
+// 				this.getSubList(tPath, subList, pathLength, xxTree["*"])
+// 			}
+// 		}
+// 		return subIds
+// 	}
+// 	match(pattern: string, target: string) {
+// 		// this.log('Match:', pattern, '~~', target)
+// 		if (pattern.startsWith('*')) return true
+// 		if (target.startsWith('*')) return true
+// 		if (pattern == target) return true
+// 		return false
+// 	}
+// }
 
 // OLD CODE! (20190726)
 

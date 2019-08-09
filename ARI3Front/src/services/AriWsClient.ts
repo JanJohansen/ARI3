@@ -1,9 +1,20 @@
 import { AriProtocolHandler } from "../../../ARI3Back/src/common/AriProtocolHandler"
-import { AriNode } from "../common/AriTree"
+import { AriObject } from "../common/AriObject"
+
+
+/*
+PseudoCode path!:
+Client SUBs:
+    Set subscription in local tree.
+    If remote subscription AND subscription not done on this path before: Send subscription to remote.
+
+
+*/
+
 
 export class AriWsClient {
     private protocolHandler = new AriProtocolHandler()
-    private ariModel = new AriNode()
+    private ariObject = new AriObject()
     private authenticated: boolean = false
     private nextSubId = 0
     private subs: { [subId: number]: { cb: (value: any, resultTree: any, extraArgs: any, subId: number) => void; extraArgs: any } } = {}
@@ -24,16 +35,11 @@ export class AriWsClient {
         this.set(".connection.connected", false)
         this.set(".connection.authenticated", false)
 
-        this.protocolHandler.on("set", (args) => {
-            // Remote 
-        })
-
         this._connect()
 
         // debug output!
         setInterval(()=>{
-            console.log("DebugDump:", this.ariModel)
-            // this.ariModel.dumpModel()
+            console.log("DebugDump:", this.ariObject)
         }, 5000)
     
     }
@@ -47,7 +53,7 @@ export class AriWsClient {
 	 */
     set(path: string | string[], value: any, storePath = true, storeValue = true) {
         path = typeof path == 'string' ? path.split('.') : path.slice()
-        if (path[0] == "") this.ariModel.pub(path, value, storePath, storeValue)
+        if (path[0] == "") this.ariObject.pub(path, value, storePath, storeValue)
         else {
             console.log("SetRemote:", path, value)
             this.protocolHandler.notify("set", { path, v: value })
@@ -55,13 +61,20 @@ export class AriWsClient {
     }
     on(path: string | string[], cb: (v: any, subscriptionContext: any) => void, subscriptionContext: any = undefined, storePath = true): number | null {
         path = typeof path == 'string' ? path.split('.') : path.slice()
-        if (path[0] == "") return this.ariModel.sub(path, cb, subscriptionContext, storePath)
-        else {
+        // Subscribe to local path in any case!
+        let subId = this.ariObject.sub(path, cb, subscriptionContext, storePath)
+        if(path[0] != "") {
+            // If it's a remote subscription, and we haven't subscribed to it before. Send subscription.
             console.log("OnRemote:", path)
-
-            this.protocolHandler.notify("on", { path, subId: this.nextSubId, context: subscriptionContext, storePath })
-            this.subs[this.nextSubId] = { cb, extraArgs: subscriptionContext }
-            return this.nextSubId++
+            let found = this.ariObject.findNode(path, false)
+            if(found) {
+                let subCount = found.node.getSubscriberCount(name)
+                if(subCount == 0) {
+                    this.protocolHandler.notify("on", { path, subId: this.nextSubId, context: subscriptionContext, storePath })
+                    this.subs[this.nextSubId] = { cb, extraArgs: subscriptionContext }
+                    return this.nextSubId++
+                }
+            } else throw("Error!: Should always find node when subscribing since path is created. (It might just not be set to be stored!)")
         }
     }
     async getRoots(){
@@ -126,7 +139,7 @@ export class AriWsClient {
         this.ws = new WebSocket("ws://" + window.location.hostname + ":3001")//"ws://localhost:3001")
         var self = this
 
-        this.protocolHandler.onSend = (msg: string) => {
+        this.protocolHandler.out_send = (msg: string) => {
             if (this.ws!.readyState == this.ws!.OPEN) this.ws!.send(msg)
             else console.log("!!!ATTENTION: Sending to server while not connected!")
         }
@@ -147,7 +160,7 @@ export class AriWsClient {
 
         }
         this.ws.onmessage = async (msg: MessageEvent) => {
-            let reply = await this.protocolHandler.handleMessage(msg.data)
+            let reply = await this.protocolHandler.receive(msg.data)
             if (reply) self.ws!.send(reply)
         }
         this.ws.onerror = () => {

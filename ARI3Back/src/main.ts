@@ -3,17 +3,42 @@ var log = appRoot.logger.createNamedLogger("main")
 log.user("ARI 3 starting.")
 log.user("---------------")
 
+import { AriObject } from "./common/AriNode"
+let ariObject = new AriObject()
+
+//DEébug
+let dump = function (obj: any, indent = 0, str = "") {
+    let ind = new Array(indent).join(' ');
+    for (let p in obj) {
+        str += ind
+        str += p
+        if(typeof(obj[p]) == "object") str += "\n\r" + dump(obj[p], indent + 2)
+        else str += " = " + obj[p] + "\n\r"
+    }
+    return str
+}
+// setInterval(() => {
+//     // log.debug("ariNode", JSON.stringify(ariNode, null, 2))
+//     log.debug(dump(ariObject))
+// }, 5000)
+
 //----------------------------------
 // Websocket Server
 import { WsServer } from "./WsServer"
-appRoot.wsServer = new WsServer()
+// appRoot.wsServer = new WsServer()
+// ariObject["WsServer"] = appRoot.wsServer.ariObject
+
+
+import { AriWsClientTest } from "./common/AriObjectStore";
+let test = new AriWsClientTest()
+
 
 
 // import { MQTTTrap } from "./MQTTTrap"
 // var MQTTT = new MQTTTrap()
 
-import { AriSyncApp } from "./common/AriSyncClient"
-let app = new AriSyncApp()
+// import { AriSyncApp } from "./common/AriSyncClient"
+// let app = new AriSyncApp()
 
 
 // Doesn't work - broken!!!

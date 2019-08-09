@@ -3,12 +3,18 @@ var log = appRoot.logger.createNamedLogger("AriClientServer")
 
 import { AriNodeBase } from "./common/AriNodeBase"
 import { AriProtocolHandler } from "./common/AriProtocolHandler"
-
+import { AriObject } from "./common/AriNode"
 
 export class AriClientServer {
+    ariObject: AriObject
     protocolHandler: AriProtocolHandler
     clientNode: AriNodeBase | undefined
     constructor(ariRoot: AriNodeBase) {
+        
+        this.ariObject = new AriObject()
+        this.ariObject.pub("connected", true)
+        this.ariObject.pub("ip", )
+
         this.protocolHandler = new AriProtocolHandler()
         this.protocolHandler.on("authenticate", async (args: any) => {
             log.debug("Authenticating:", args)
