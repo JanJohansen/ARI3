@@ -2,7 +2,7 @@
 // NOTE FOR SELF: Source is in __FRONT___
 
 /**
- * @description Generic protocl handler between ARI peers.
+ * @description Generic protocol handler between ARI peers.
  * @function on(name, callback) = Register function <callback> to be called on command/telegram named <name> from peer.
  * @function call(name, args) = Call remote function <name> with arguments <args>
  * @function notify(name, args) = Send <name> message/telegram to peer with arguments <args>
@@ -66,19 +66,29 @@ export class AriProtocolHandler {
             }
         }
     }
-    call(functionName: string, args: any = {}) {
+    call(name: string, args: any = {}) {
         return new Promise<any>((resolve, reject) => {
             // TODO: Implement timeout rejection
             this._pendingRequests[this._reqId] = { resolve, reject }
-            this.out_send(JSON.stringify({ op: functionName, req: this._reqId, args: args }, this.__jsonReplacer))
+            this.out_send(JSON.stringify({ op: name, req: this._reqId, args: args }, this.__jsonReplacer))
             this._reqId++
         })
     }
-    notify(functionName: string, args: any) {
-        this.out_send(JSON.stringify({ op: functionName, args: args }, this.__jsonReplacer))
+    emit(name: string, args: any) {
+        this.out_send(JSON.stringify({ op: name, args: args }, this.__jsonReplacer))
     }
-    on(action: string, callback: (args: any) => any) {
-        this._requestHandlers[action] = callback
+    on(name: string, callback: (args: any) => any) {
+        this._requestHandlers[name] = callback
+    }
+    wrap(targetObject: any){
+        // EXPERIMENTAL!
+        for(let prop in targetObject) {
+            if(!(prop.startsWith("__"))) {
+                if(typeof(targetObject[prop] == "function")) {
+                    this.on(prop, targetObject[prop])
+                }
+            }
+        }
     }
     //------------------
     // Support functions
