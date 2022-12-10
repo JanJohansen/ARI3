@@ -27,7 +27,7 @@
     "cpx": "^1.5.0",
     "cuid": "^2.1.6",
     "eventemitter2": "^5.0.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "glob": "^7.1.4",
     "mqtt-connection": "^4.0.0",
     "node-fauxmo": "0.0.7",
